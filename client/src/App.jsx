@@ -50,7 +50,7 @@ export default function App() {
     setContent(note.content);
   }
 
-  // Create or update depending on edit mode
+  // Create or update note
   async function submitNote(e) {
     e.preventDefault();
 
@@ -58,7 +58,6 @@ export default function App() {
       setError("");
 
       const isEditing = editingId !== null;
-
       const url = isEditing ? `${API}/notes/${editingId}` : `${API}/notes`;
       const method = isEditing ? "PUT" : "POST";
 
@@ -70,15 +69,25 @@ export default function App() {
 
       if (!res.ok) throw new Error(`Request failed: ${res.status}`);
 
-      // Clear form + refresh list
-      resetForm();
-      await loadNotes();
-    } catch (err) {
-      setError(err.message || "Something went wrong");
-    }
-  }
+      const savedNote = await res.json(); // backend returns note
 
-  // Delete a note
+      if (isEditing) {
+        // Replace updated note in state
+        setNotes((prev) =>
+          prev.map((n) => (n.id === savedNote.id ? savedNote : n))
+        );
+      } else {
+        // Add new note at top
+        setNotes((prev) => [savedNote, ...prev]);
+      }
+
+    resetForm();
+  } catch (err) {
+    setError(err.message || "Something went wrong");
+  }
+}
+
+  // Delete note
   async function deleteNote(id) {
     try {
       setError("");
@@ -86,10 +95,10 @@ export default function App() {
       const res = await fetch(`${API}/notes/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error(`Request failed: ${res.status}`);
 
-      // If we deleted the note currently being edited, exit edit mode
-      if (editingId === id) resetForm();
+      // Remove from state
+      setNotes((prev) => prev.filter((n) => n.id !== id));
 
-      await loadNotes();
+      if (editingId === id) resetForm();
     } catch (err) {
       setError(err.message || "Something went wrong");
     }
