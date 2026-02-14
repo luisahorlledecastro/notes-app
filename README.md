@@ -21,13 +21,6 @@ The app supports creating, editing, viewing, and deleting notes.
 
 ------------------------------------------------------------------------
 
-## Project Structure
-
-notes-app/ ├── client/ \# React frontend ├── server/ \# Express API + DB
-logic ├── package.json \# root dev runner └── README.md
-
-------------------------------------------------------------------------
-
 ## Requirements
 
 Install before running:
@@ -46,7 +39,7 @@ node -v npm -v psql --version
 
 ### 1. Clone the repository
 
-git clone `<YOUR_REPO_URL>`{=html} cd notes-app
+git clone `<https://github.com/luisahorlledecastro/notes-app>`{=html} cd notes-app
 
 ------------------------------------------------------------------------
 
