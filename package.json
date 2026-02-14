@@ -1,0 +1,26 @@
+{
+  "name": "notes-app",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+  "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+  "dev:server": "npm --prefix server run dev",
+  "dev:client": "npm --prefix client run dev"
+},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luisahorlledecastro/notes-app.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/luisahorlledecastro/notes-app/issues"
+  },
+  "homepage": "https://github.com/luisahorlledecastro/notes-app#readme",
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
