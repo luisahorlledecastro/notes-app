@@ -18,6 +18,10 @@ export default function App() {
   // Edit mode: null means "creating new", otherwise holds note id
   const [editingId, setEditingId] = useState(null);
 
+  // Request state
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
+
   // Fetch notes from backend
   async function loadNotes() {
     try {
@@ -53,9 +57,11 @@ export default function App() {
   // Create or update note
   async function submitNote(e) {
     e.preventDefault();
+    if (saving) return; // prevent double-submit
 
     try {
       setError("");
+      setSaving(true);
 
       const isEditing = editingId !== null;
       const url = isEditing ? `${API}/notes/${editingId}` : `${API}/notes`;
@@ -69,38 +75,39 @@ export default function App() {
 
       if (!res.ok) throw new Error(`Request failed: ${res.status}`);
 
-      const savedNote = await res.json(); // backend returns note
+      const savedNote = await res.json();
 
       if (isEditing) {
-        // Replace updated note in state
-        setNotes((prev) =>
-          prev.map((n) => (n.id === savedNote.id ? savedNote : n))
-        );
+        setNotes((prev) => prev.map((n) => (n.id === savedNote.id ? savedNote : n)));
       } else {
-        // Add new note at top
         setNotes((prev) => [savedNote, ...prev]);
       }
 
-    resetForm();
-  } catch (err) {
-    setError(err.message || "Something went wrong");
+      resetForm();
+    } catch (err) {
+      setError(err.message || "Something went wrong");
+    } finally {
+      setSaving(false);
+    }
   }
-}
 
   // Delete note
   async function deleteNote(id) {
+    if (deletingId === id) return; // prevent spam-click
+
     try {
       setError("");
+      setDeletingId(id);
 
       const res = await fetch(`${API}/notes/${id}`, { method: "DELETE" });
       if (!res.ok) throw new Error(`Request failed: ${res.status}`);
 
-      // Remove from state
       setNotes((prev) => prev.filter((n) => n.id !== id));
-
       if (editingId === id) resetForm();
     } catch (err) {
       setError(err.message || "Something went wrong");
+    } finally {
+      setDeletingId(null);
     }
   }
 
@@ -127,15 +134,16 @@ export default function App() {
 
         {/* Primary action changes based on edit mode */}
         <div style={{ display: "flex", gap: 8 }}>
-          <button type="submit" disabled={!title || !content}>
-            {isEditing ? "Save changes" : "Add note"}
+          <button type="submit" disabled={saving || !title || !content}>
+            {saving ? "Saving…" : isEditing ? "Save changes" : "Add note"}
           </button>
+
 
           {/* Cancel only matters while editing */}
           {isEditing && (
-            <button type="button" onClick={resetForm}>
-              Cancel
-            </button>
+              <button type="button" onClick={resetForm} disabled={saving}>
+                Cancel
+              </button>
           )}
         </div>
       </form>
@@ -155,11 +163,11 @@ export default function App() {
 
             {/* Per-note actions */}
             <div style={{ marginTop: 10, display: "flex", gap: 8 }}>
-              <button type="button" onClick={() => startEdit(n)}>
+              <button type="button" onClick={() => startEdit(n)} disabled={saving || deletingId === n.id}>
                 Edit
               </button>
-              <button type="button" onClick={() => deleteNote(n.id)}>
-                Delete
+              <button type="button" onClick={() => deleteNote(n.id)} disabled={saving || deletingId === n.id}>
+                {deletingId === n.id ? "Deleting…" : "Delete"}
               </button>
             </div>
           </div>
